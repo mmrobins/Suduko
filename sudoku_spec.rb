@@ -1,7 +1,7 @@
 require 'sudoku'
 
 describe Cell do
-  it "should fill in value if only one possibility" do
+  it "should have value if only one possibility" do
     cell = Cell.new
     cell.possibilities.should == (1..9).to_a
     cell.value.should == nil
@@ -9,7 +9,7 @@ describe Cell do
     cell.value.should == 2
   end
 
-  it "should fill in value if initialized with only one possibility" do
+  it "should have value if initialized with only one possibility" do
     cell = Cell.new(3)
     cell.possibilities.should == [3]
     cell.value.should == 3
@@ -39,16 +39,28 @@ describe CellGroup do
     cell_group.solved_values.sort.should == (1..9).to_a
     cell_group.unsolved_cells.size.should == 0
   end
-  it "remove possibility from cell if other cell in group has that value" do
+  it "should remove possibility from cell if other cell in group has that value" do
     cell_group = CellGroup.new([
       Cell.new,
       Cell.new(1)
     ])
-    cell_group.remove_solved_values_from_possibilities
-    cell_group.map {|cell| cell.possibilities }.should == [
-      [2, 3],
+    cell_group.cells.map {|cell| cell.possibilities }.should == [
+      (1..9).to_a,
       [1]
     ]
+    cell_group.remove_solved_values_from_possibilities
+    cell_group.cells.map {|cell| cell.possibilities }.should == [
+      (2..9).to_a,
+      [1]
+    ]
+  end
+  it "should fill in value for a cell that has the only possibility of being an unsolved value" do
+    cell_group = CellGroup.new([
+      Cell.new.possibilities = [1,2],
+      Cell.new.possibilities = [1,2,3]
+    ])
+    cell_group.fill_in_unique_possibilities
+
   end
 end
 
