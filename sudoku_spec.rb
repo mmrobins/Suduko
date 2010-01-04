@@ -24,6 +24,7 @@ describe CellGroup do
     cell_group = CellGroup.new(solved_cells + unsolved_cells)
     cell_group.solved_values.should == (1..7).to_a
     cell_group.solved_cells.should == solved_cells
+    cell_group.unsolved_values.uniq.should == (1..9).to_a
     cell_group.unsolved_cells.should == unsolved_cells
 
     cell_group.remove_solved_values_from_possibilities
@@ -31,12 +32,14 @@ describe CellGroup do
 
     cell_group.unsolved_cells.first.possibilities = [9]
     cell_group.solved_values.should == (1..7).to_a + [9]
+    cell_group.unsolved_values.uniq.should == [8, 9]
     cell_group.unsolved_cells.size.should == 1
     cell_group.unsolved_cells.first.possibilities.should == [8,9]
 
     cell_group.remove_solved_values_from_possibilities
     cell_group.solved_cells.size.should == 9
     cell_group.solved_values.sort.should == (1..9).to_a
+    cell_group.unsolved_values.uniq.sort.should == []
     cell_group.unsolved_cells.size.should == 0
   end
   it "should remove possibility from cell if other cell in group has that value" do
@@ -55,12 +58,27 @@ describe CellGroup do
     ]
   end
   it "should fill in value for a cell that has the only possibility of being an unsolved value" do
-    cell_group = CellGroup.new([
-      Cell.new.possibilities = [1,2],
-      Cell.new.possibilities = [1,2,3]
-    ])
-    cell_group.fill_in_unique_possibilities
+    cell = Cell.new
+    cell.possibilities = (1..8).to_a
+    cell_group = CellGroup.new(Array.new(8, cell) + [Cell.new])
 
+    cell_group.unsolved_values.uniq.should == (1..9).to_a
+    cell_group.fill_in_unique_possibilities
+    cell_group.remove_solved_values_from_possibilities
+
+    cell_group.unsolved_values.uniq.should == (1..8).to_a
+  end
+  it "should detect when the same solved value appears twice" do
+    cell_group = CellGroup.new([Cell.new(5), Cell.new(6)])
+    cell_group.duplicate_solved_values.should == []
+
+    cell_group = CellGroup.new([Cell.new(7), Cell.new(7)])
+    cell_group.duplicate_solved_values.should == [7]
+  end
+  it "should detect when a cell has zero possibilities"
+    cell_without_possiblities = Cell.new
+    cell_without_possiblities.possibilities = []
+    cell_group = CellGroup.new([cell_without_possiblities])
   end
 end
 
@@ -112,5 +130,8 @@ describe Sudoku do
       [4, 5, 6, 4, 5, 6, 4, 5, 6],
       [7, 8, 9, 7, 8, 9, 7, 8, 9],
     ]
+  end
+  it "should know if it's valid" do
+    @unsolved.reasons_invalid.should == ['column 1 has the same value more than once']
   end
 end
